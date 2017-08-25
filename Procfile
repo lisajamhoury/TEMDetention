@@ -1,0 +1,1 @@
+web: gunicorn dysturb.wsgi --log-file -
