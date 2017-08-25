@@ -1,1 +1,1 @@
-web: gunicorn dysturb.wsgi --log-file -
+web: gunicorn detention.wsgi --log-file -
