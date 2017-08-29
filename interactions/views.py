@@ -2,15 +2,15 @@ import logging
 
 from django_twilio.decorators import twilio_view
 from django_twilio.request import decompose
-from twilio.twiml import Response 
-from twilio.rest import TwilioRestClient
+from twilio.rest import Client
+from twilio.twiml.voice_response import Play, VoiceResponse
 
 from django.conf import settings
 from django.http import HttpResponse
 
 from interactions.models import Inbound, Outbound, TwilioNumber, User, Action
 
-client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,27 @@ def followup(request):
 	outbound.send_followup()
 
 	return HttpResponse()
+
+@twilio_view
+def answeredby(request):
+	twilio_request = decompose(request)
+	outbound = Outbound.objects.get(twilio_sid=twilio_request.callsid)
+	response = VoiceResponse()
+
+	if twilio_request.answeredby in ['human', 'unknown']:
+		response.play(outbound.action.audio_file.url)
+		print('human', response)
+
+	else: 
+		response.hangup()
+		print('hanging up')
+
+	return HttpResponse(response) 
+
+
+
+
+
 
 
 

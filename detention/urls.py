@@ -13,16 +13,20 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url
 from django.contrib import admin
+
+from interactions import views
+
 admin.autodiscover()
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     
     # twilio URLs
-    url(r'^sms/$', 'interactions.views.sms', name='sms'),
-    url(r'^followup/$', 'interactions.views.followup', name='followup')
+    url(r'^sms/$', views.sms, name='sms'),
+    url(r'^followup/$', views.followup, name='followup'),
+    url(r'^answeredby/$', views.answeredby, name='answeredby')
     # url(r'^ring/$', 'interactions.views.ring'),
     # url(r'^call/$', 'interactions.views.call'),
 ]

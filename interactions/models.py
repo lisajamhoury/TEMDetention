@@ -1,12 +1,12 @@
 import logging
 
-from twilio.rest import TwilioRestClient
+from twilio.rest import Client
 
 from django.conf import settings
 from django.db import models
 from django.core.urlresolvers import reverse
 
-client = TwilioRestClient(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +15,14 @@ class Followup(models.Model):
 	name = models.CharField(max_length=50)
 	body = models.TextField()
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.name
 
 class Fallback(models.Model):
 	name = models.CharField(max_length=50)
 	body = models.TextField()
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.name
 
 class TwilioNumber(models.Model):
@@ -31,7 +31,7 @@ class TwilioNumber(models.Model):
 	followup = models.ForeignKey(Followup, null=True)
 	fallback = models.ForeignKey(Fallback, null=True)
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.number 
 
 	def get_caller_id(self):
@@ -51,11 +51,14 @@ class Action(models.Model):
 	class Meta:
 		unique_together = ('twilio_number', 'keyword')
 
-	def __unicode__(self):
+	def __str__(self):
 		return '%s / %s' % (self.twilio_number, self.keyword)
 
 	def get_callback_url(self):
 		return settings.BASE_URL + reverse('followup')
+
+	def get_answeredby_url(self):
+		return settings.BASE_URL + reverse('answeredby')
 
 
 	def perform(self, user_number):
@@ -64,10 +67,12 @@ class Action(models.Model):
 				to=user_number.number, 
 				from_=self.twilio_number.number, 
 				method='GET',
-				url=self.audio_file.url,
+				url=self.get_answeredby_url(),
+				# url=self.audio_file.url,
+				machine_detection='Enable',
 				status_callback=self.get_callback_url()
 			) 
-			
+
 			outbound = Outbound(
 				from_number=self.twilio_number,
 				to_number=user_number,
@@ -90,7 +95,7 @@ class User(models.Model):
 	number = models.CharField(max_length=20)
 	subscribed = models.BooleanField(default=False)
 
-	def __unicode__(self):
+	def __str__(self):
 		return self.number
 
 	def subscribe(self, twilio_number):
@@ -114,7 +119,7 @@ class Inbound(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	twilio_sid = models.CharField(max_length=200, blank=True)
 
-	def __unicode__(self):
+	def __str__(self):
 		return 'inbound on %s from %s: %s (%s)' % (self.created_formatted, self.from_number, self.body, self.twilio_sid)
 
 	@property 
@@ -133,7 +138,7 @@ class Outbound(models.Model):
 	twilio_sid = models.CharField(max_length=200, blank=True)
 	followup_sent = models.BooleanField(default=False)	
 
-	def __unicode__(self):
+	def __str__(self):
 		return 'outbound to %s: %s' % (self.to_number, self.twilio_sid)
 
 	def send_followup(self): 

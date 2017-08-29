@@ -1,12 +1,14 @@
 Django==1.11.4
-dj-database-url==0.3.0
+dj-database-url==0.4.2
 dj-static==0.0.6
 django-toolbelt==0.0.1
-gunicorn==19.3.0
-psycopg2==2.6.1
-static3==0.6.1
+gunicorn==19.7.1
+psycopg2==2.7.3.1
+static3==0.7.0
 twilio>=3.3.6
-django-twilio==0.8.0
-django-storages==1.1.8
-boto==2.38.0
-django-import-export==0.4.5
+-e git+https://github.com/rdegges/django-twilio.git@a82881321257e49e8c5f8878e34a50bc42682ff8#egg=django_twilio
+django-storages==1.6.5
+boto==2.48.0
+boto3==1.4.6
+django-import-export==0.5.1
+
