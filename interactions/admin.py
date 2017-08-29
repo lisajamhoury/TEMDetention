@@ -5,6 +5,7 @@ from django.contrib import admin
 
 from interactions.models import Fallback
 from interactions.models import Followup
+from interactions.models import Reprompt
 from interactions.models import TwilioNumber
 from interactions.models import Action
 from interactions.models import User
@@ -27,6 +28,7 @@ class InboundAdmin(ExportMixin, admin.ModelAdmin):
 
 admin.site.register(Fallback)
 admin.site.register(Followup)
+admin.site.register(Reprompt)
 admin.site.register(TwilioNumber)
 admin.site.register(Action)
 admin.site.register(User)

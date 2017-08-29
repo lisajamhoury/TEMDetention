@@ -149,7 +149,7 @@ STATICFILES_DIRS = (
 TWILIO_ACCOUNT_SID = os.getenv('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 
-BASE_URL = 'http://e5586bba.ngrok.io'
+BASE_URL = 'http://7c5f81ed.ngrok.io'
 
 if not DEBUG:
     BASE_URL = 'http://thawing-hollows-31294.herokuapp.com'

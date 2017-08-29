@@ -25,11 +25,19 @@ class Fallback(models.Model):
 	def __str__(self):
 		return self.name
 
+class Reprompt(models.Model):
+	name = models.CharField(max_length=50)
+	body = models.TextField()
+
+	def __str__(self):
+		return self.name 
+
 class TwilioNumber(models.Model):
 	number = models.CharField(max_length=20)
 	alpha_id = models.BooleanField(default=False)
 	followup = models.ForeignKey(Followup, null=True)
 	fallback = models.ForeignKey(Fallback, null=True)
+	reprompt = models.ForeignKey(Reprompt, null=True)
 
 	def __str__(self):
 		return self.number 
@@ -47,6 +55,7 @@ class Action(models.Model):
 	audio_file = models.FileField(null=True, upload_to='audio', blank=True) 
 	body = models.TextField(null=True, blank=True) 
 	followup = models.TextField(null=True, blank=True)
+	reprompt = models.TextField(null=True, blank=True)
 
 	class Meta:
 		unique_together = ('twilio_number', 'keyword')
@@ -68,7 +77,6 @@ class Action(models.Model):
 				from_=self.twilio_number.number, 
 				method='GET',
 				url=self.get_answeredby_url(),
-				# url=self.audio_file.url,
 				machine_detection='Enable',
 				status_callback=self.get_callback_url()
 			) 
@@ -137,9 +145,32 @@ class Outbound(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	twilio_sid = models.CharField(max_length=200, blank=True)
 	followup_sent = models.BooleanField(default=False)	
+	answered_by = models.CharField(max_length=100, blank=True)
 
 	def __str__(self):
 		return 'outbound to %s: %s' % (self.to_number, self.twilio_sid)
+
+	def send_reprompt(self):
+
+		reprompt = None
+
+		if self.from_number.reprompt:
+			reprompt = self.from_number.reprompt.body
+
+		if self.action.reprompt:
+			reprompt = self.action.reprompt
+
+		if reprompt is not None:
+			message = client.messages.create(
+				body=reprompt,
+				to=self.to_number.number,
+				from_=self.from_number.get_caller_id()
+			)
+
+		print('sent try again message')
+
+		# add try again field to model? 
+
 
 	def send_followup(self): 
 

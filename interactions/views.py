@@ -27,6 +27,11 @@ def sms(request):
 		user.subscribe(twilio_number)
 		return HttpResponse()
 
+	if body == 'yes':
+		user_number = user.number
+
+	# search through outbounds for most recent CALL to this number	
+
 	inbound = Inbound()
 	inbound.from_number = user
 	inbound.to_number = twilio_number
@@ -58,7 +63,13 @@ def followup(request):
 	twilio_request = decompose(request)
 	outbound = Outbound.objects.get(twilio_sid=twilio_request.callsid)
 
-	outbound.send_followup()
+	if outbound.answered_by in ['human', 'unknown']:
+		outbound.send_followup()
+		print('sending followup')
+
+	else: 
+		outbound.send_reprompt()
+		print('sending reprompt')
 
 	return HttpResponse()
 
@@ -70,11 +81,12 @@ def answeredby(request):
 
 	if twilio_request.answeredby in ['human', 'unknown']:
 		response.play(outbound.action.audio_file.url)
-		print('human', response)
 
 	else: 
 		response.hangup()
-		print('hanging up')
+
+	outbound.answered_by = twilio_request.answeredby
+	outbound.save()
 
 	return HttpResponse(response) 
 
