@@ -6,9 +6,10 @@ from twilio.rest import Client
 from twilio.twiml.voice_response import Play, VoiceResponse
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 
 from interactions.models import Inbound, Outbound, TwilioNumber, User, Action
+from twilio.request_validator import RequestValidator
 
 client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
@@ -70,10 +71,21 @@ def followup(request):
 
 	return HttpResponse()
 
-@twilio_view
 def answeredby(request):
 	logger.info(request.build_absolute_uri())
 	twilio_request = decompose(request)
+	validator = RequestValidator(settings.TWILIO_AUTH_TOKEN)
+
+	# Validate the request using its URL, POST data,
+	# and X-TWILIO-SIGNATURE header
+	request_valid = validator.validate(
+		request.build_absolute_uri(),
+		request.POST,
+		request.META.get('HTTP_X_TWILIO_SIGNATURE', ''))
+	
+	if not request_valid:
+		return HttpResponseForbidden()
+
 	outbound = Outbound.objects.get(twilio_sid=twilio_request.callsid)
 	response = VoiceResponse()
 
