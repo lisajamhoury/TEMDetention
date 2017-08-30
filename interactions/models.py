@@ -135,8 +135,16 @@ class Inbound(models.Model):
 		return self.created.strftime('%m/%d/%Y')		
 
 	@classmethod
-	def create_from_twilio_request(cls, twilio_request):
-		pass
+	def create_from_twilio_request(cls, twilio_request, twilio_number, user):
+		inbound = cls()
+		inbound.from_number = user
+		inbound.to_number = twilio_number
+		inbound.body = twilio_request.body.lower()
+		inbound.twilio_sid = twilio_request.smssid
+		inbound.save()
+		
+		return inbound
+
 
 class Outbound(models.Model):
 	from_number = models.ForeignKey(TwilioNumber)
@@ -145,6 +153,7 @@ class Outbound(models.Model):
 	created = models.DateTimeField(auto_now_add=True)
 	twilio_sid = models.CharField(max_length=200, blank=True)
 	followup_sent = models.BooleanField(default=False)	
+	reprompt_sent = models.BooleanField(default=False)
 	answered_by = models.CharField(max_length=100, blank=True)
 
 	def __str__(self):
@@ -160,16 +169,15 @@ class Outbound(models.Model):
 		if self.action.reprompt:
 			reprompt = self.action.reprompt
 
-		if reprompt is not None:
+		if not self.reprompt_sent and reprompt:
 			message = client.messages.create(
 				body=reprompt,
 				to=self.to_number.number,
 				from_=self.from_number.get_caller_id()
 			)
 
-		print('sent try again message')
-
-		# add try again field to model? 
+			self.reprompt_sent = True 
+			self.save()
 
 
 	def send_followup(self): 
@@ -182,7 +190,7 @@ class Outbound(models.Model):
 		if self.action.followup:
 			followup = self.action.followup
 
-		if not self.followup_sent and followup is not None:	
+		if not self.followup_sent and followup:	
 			message = client.messages.create(
 				body=followup,
 				to=self.to_number.number,
@@ -193,4 +201,12 @@ class Outbound(models.Model):
 			self.save()
 
 
+	@classmethod
+	def find_most_recent_call(cls, user):
+		outbound = cls.objects\
+			.filter(to_number=user)\
+			.order_by('-created')\
+			.exclude(answered_by__in=['human', 'unknown']).first()
+
+		return outbound
 

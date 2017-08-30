@@ -21,23 +21,25 @@ def sms(request):
 	user, created = User.objects.get_or_create(number=twilio_request.from_)
 	twilio_number, created = TwilioNumber.objects.get_or_create(number=twilio_request.to)
 	
+	inbound = Inbound.create_from_twilio_request(twilio_request, twilio_number, user)
+
 	body = twilio_request.body.lower()
 
 	if body == 'subscribe':
 		user.subscribe(twilio_number)
+		
 		return HttpResponse()
 
 	if body == 'yes':
-		user_number = user.number
+		outbound = Outbound.find_most_recent_call(user)
 
-	# search through outbounds for most recent CALL to this number	
+		action = outbound.action 
+		action.perform(user)
+		
+		inbound.action = action
+		inbound.save()
 
-	inbound = Inbound()
-	inbound.from_number = user
-	inbound.to_number = twilio_number
-	inbound.body = body
-	inbound.twilio_sid = twilio_request.smssid
-	inbound.save()
+		return HttpResponse()
 
 	try:
 		action = Action.objects.get(keyword=inbound.body, twilio_number=twilio_number)
@@ -52,9 +54,6 @@ def sms(request):
 				to=user.number,
 				from_=twilio_number.number 
 			)
-		pass
-
-	sender = getattr(twilio_request, 'from_', 'No sender provided with request')
 	
 	return HttpResponse()
 
@@ -65,11 +64,9 @@ def followup(request):
 
 	if outbound.answered_by in ['human', 'unknown']:
 		outbound.send_followup()
-		print('sending followup')
 
 	else: 
 		outbound.send_reprompt()
-		print('sending reprompt')
 
 	return HttpResponse()
 
