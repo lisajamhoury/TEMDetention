@@ -72,6 +72,7 @@ def followup(request):
 
 @twilio_view
 def answeredby(request):
+	logger.info(request.build_absolute_uri())
 	twilio_request = decompose(request)
 	outbound = Outbound.objects.get(twilio_sid=twilio_request.callsid)
 	response = VoiceResponse()
