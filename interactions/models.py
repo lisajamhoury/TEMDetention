@@ -12,32 +12,32 @@ logger = logging.getLogger(__name__)
 
 
 class Followup(models.Model):
-	name = models.CharField(max_length=50)
-	body = models.TextField()
+	name = models.CharField(max_length=50, help_text='Used for identification within admin')
+	body = models.TextField(help_text='Text message to be sent to user')
 
 	def __str__(self):
 		return self.name
 
 class Fallback(models.Model):
-	name = models.CharField(max_length=50)
-	body = models.TextField()
+	name = models.CharField(max_length=50, help_text='Used for identification within admin')
+	body = models.TextField(help_text='Text message to be sent to user')
 
 	def __str__(self):
 		return self.name
 
 class Reprompt(models.Model):
-	name = models.CharField(max_length=50)
-	body = models.TextField()
+	name = models.CharField(max_length=50, help_text='Used for identification within admin')
+	body = models.TextField(help_text='Text message to be sent to user')
 
 	def __str__(self):
 		return self.name 
 
 class TwilioNumber(models.Model):
-	number = models.CharField(max_length=20)
+	number = models.CharField(max_length=20, help_text='Create number in Twilio before entering here. Include plus sign and country code. ie +1')
 	alpha_id = models.BooleanField(default=False)
-	followup = models.ForeignKey(Followup, null=True)
-	fallback = models.ForeignKey(Fallback, null=True)
-	reprompt = models.ForeignKey(Reprompt, null=True)
+	followup = models.ForeignKey(Followup, null=True, help_text='Default followup for this phone number')
+	fallback = models.ForeignKey(Fallback, null=True, help_text='Default fallback for this phone number')
+	reprompt = models.ForeignKey(Reprompt, null=True, help_text='Default reprompt for this phone number')
 
 	def __str__(self):
 		return self.number 
@@ -51,11 +51,11 @@ class TwilioNumber(models.Model):
 
 class Action(models.Model):
 	twilio_number = models.ForeignKey(TwilioNumber)
-	keyword = models.CharField(max_length=50) 
+	keyword = models.CharField(max_length=50, help_text='Word for user text in. Must be all lowercase.') 
 	audio_file = models.FileField(null=True, upload_to='audio', blank=True) 
-	body = models.TextField(null=True, blank=True) 
-	followup = models.TextField(null=True, blank=True)
-	reprompt = models.TextField(null=True, blank=True)
+	body = models.TextField(null=True, blank=True, help_text='Overrides audio. Only add if no audio') 
+	followup = models.TextField(null=True, blank=True, help_text='Overrides default followup for phone number')
+	reprompt = models.TextField(null=True, blank=True, help_text='Overrides default reprompt for phone number')
 
 	class Meta:
 		unique_together = ('twilio_number', 'keyword')
