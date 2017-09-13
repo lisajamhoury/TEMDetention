@@ -24,6 +24,20 @@ class InboundAdmin(ExportMixin, admin.ModelAdmin):
 	list_filter = ('from_number', 'to_number__number', 'action', 'body')
 	list_display = ('from_number', 'to_number', 'action', 'body', 'created_formatted')
 	resource_class = InboundResource
+
+
+class OutboundResource(resources.ModelResource):
+	created_formatted = fields.Field(attribute='created_formatted')
+
+	class Meta:
+		model = Outbound
+		fields = ('from_number__number', 'to_number__number', 'action__keyword', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration')
+
+
+class OutboundAdmin(ExportMixin, admin.ModelAdmin):
+	list_filter = ('from_number', 'to_number__number', 'action', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration')
+	list_display = ('to_number', 'action', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration')
+	resource_class = OutboundResource
 	
 
 admin.site.register(Fallback)
@@ -33,7 +47,7 @@ admin.site.register(TwilioNumber)
 admin.site.register(Action)
 admin.site.register(User)
 admin.site.register(Inbound, InboundAdmin)
-admin.site.register(Outbound)
+admin.site.register(Outbound, OutboundAdmin)
 
 
 

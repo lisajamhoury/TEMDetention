@@ -151,6 +151,7 @@ class Outbound(models.Model):
 	to_number = models.ForeignKey(User)
 	action = models.ForeignKey(Action)
 	created = models.DateTimeField(auto_now_add=True)
+	duration = models.CharField(max_length=100, blank=True)
 	twilio_sid = models.CharField(max_length=200, blank=True)
 	followup_sent = models.BooleanField(default=False)	
 	reprompt_sent = models.BooleanField(default=False)

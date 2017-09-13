@@ -61,7 +61,11 @@ def sms(request):
 @twilio_view
 def followup(request):
 	twilio_request = decompose(request)
+
 	outbound = Outbound.objects.get(twilio_sid=twilio_request.callsid)
+
+	outbound.duration = twilio_request.callduration
+	outbound.save()
 
 	if outbound.answered_by in ['human', 'unknown']:
 		outbound.send_followup()
@@ -72,6 +76,7 @@ def followup(request):
 	return HttpResponse()
 
 def answeredby(request):
+	# build validator manually because decorator not working
 	logger.info(request.build_absolute_uri())
 	twilio_request = decompose(request)
 	validator = RequestValidator(settings.TWILIO_AUTH_TOKEN)
