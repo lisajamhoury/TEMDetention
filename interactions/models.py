@@ -160,6 +160,10 @@ class Outbound(models.Model):
 	def __str__(self):
 		return 'outbound to %s: %s' % (self.to_number, self.twilio_sid)
 
+	@property 
+	def created_formatted(self):
+		return self.created.strftime('%m/%d/%Y')		
+
 	def send_reprompt(self):
 
 		reprompt = None

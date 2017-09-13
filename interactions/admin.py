@@ -31,12 +31,12 @@ class OutboundResource(resources.ModelResource):
 
 	class Meta:
 		model = Outbound
-		fields = ('from_number__number', 'to_number__number', 'action__keyword', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration')
+		fields = ('from_number__number', 'to_number__number', 'action__keyword', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration', 'created_formatted')
 
 
 class OutboundAdmin(ExportMixin, admin.ModelAdmin):
 	list_filter = ('from_number', 'to_number__number', 'action', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration')
-	list_display = ('to_number', 'action', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration')
+	list_display = ('to_number', 'action', 'followup_sent', 'reprompt_sent', 'answered_by', 'duration', 'created_formatted')
 	resource_class = OutboundResource
 	
 
